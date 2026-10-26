@@ -1,5 +1,10 @@
 # Loan Application API
 
+[![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Tests](https://img.shields.io/badge/tests-116%20passing-brightgreen)](#run-tests)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A REST API for submitting, reviewing, and tracking loan applications, built with ASP.NET Core (.NET 10) and PostgreSQL.
 
 Applicants submit and track their applications. Loan officers review them and approve or reject. Every status change is recorded with the acting user, a timestamp, and an optional note, giving a complete audit trail.
@@ -31,7 +36,7 @@ Applicants submit and track their applications. Loan officers review them and ap
 
 ## Application Workflow
 
-<img title="a title" alt="Alt text" src="/flowchart.png">
+![Loan application status workflow: Submitted leads to UnderReview or Withdrawn; UnderReview leads to Approved, Rejected, or Withdrawn](flowchart.png)
 
 Each transition is stored in the `StatusHistory` table with the user, timestamp, and an optional note.
 
@@ -86,15 +91,30 @@ Interactive documentation is available at `/scalar/v1` when the API is running.
 - [Docker](https://docs.docker.com/get-docker/)
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (required for migrations and running tests)
 
+### Configure
+
+Secrets are read from a `.env` file at the repository root, which is gitignored. Copy the template and fill in your own values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Purpose |
+|---|---|
+| `POSTGRES_PASSWORD` | Password for the PostgreSQL `loanapp` user |
+| `JWT_KEY` | HS256 signing key for access tokens (32+ random characters) |
+| `ASPNETCORE_ENVIRONMENT` | `Development` also exposes the Scalar reference |
+
 ### Run
 
 ```bash
-git clone https://github.com/pratikgholam/loan-application-api.git
-cd loan-application-api
+git clone https://github.com/saadmaqbooldev/loanapplication.git
+cd loanapplication
+cp .env.example .env     # then edit .env
 docker compose up --build -d
 ```
 
-The API is available at `http://localhost:8080`, with the Scalar reference at `http://localhost:8080/scalar/v1`.
+The API is available at `http://localhost:8080`, with the Scalar reference at `http://localhost:8080/scalar/v1`. PostgreSQL is published on host port `5433` to avoid clashing with a local install.
 
 ### Apply database migrations
 
@@ -120,9 +140,15 @@ dotnet test --filter "FullyQualifiedName!~PostgresIntegrationTests"
 ## Project Structure
 
 ```
-loan-application-api/
+loanapplication/
 ├── src/
-│   └── LoanApplication.Api/      # Web API
-└── tests/
-    └── LoanApplication.Tests/    # Unit and integration tests
+│   └── LoanApplication.Api/      # Web API, controllers, EF Core, Dapper reporting
+├── tests/
+│   └── LoanApplication.Tests/    # xUnit unit and integration tests
+├── compose.yml                   # API + PostgreSQL
+└── Dockerfile                    # Multi-stage build (SDK -> ASP.NET runtime)
 ```
+
+## License
+
+Released under the [MIT License](LICENSE).
